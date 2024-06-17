@@ -1,0 +1,31 @@
+version: "3.8"
+services:
+  localstack:
+    image: localstack/localstack:latest  # Using the latest LocalStack image
+    container_name: localstack  # Custom container name
+    ports:
+      - "4566:4566"  # Default LocalStack port for simulated AWS services
+      - "4571:4571"  # Legacy port for S3 if needed
+    environment:
+      - SERVICES=s3  # Initializes only the S3 service
+      - DEBUG=1      # Enables debug mode
+      - DATA_DIR=/localstack-data/data  # Configures the data directory outside of /tmp
+    volumes:
+      - "./localstack-data:/localstack-data/data"  # Mounts a custom volume for data persistence
+      - "/var/run/docker.sock:/var/run/docker.sock"  # Mounts the Docker socket for internal container control
+
+  init:
+    image: amazon/aws-cli  # Using Amazon's AWS CLI image
+    container_name: init  # Custom container name
+    depends_on:
+      - localstack  # Depends on the localstack service being up
+    environment:
+      - AWS_ACCESS_KEY_ID=guest
+      - AWS_SECRET_ACCESS_KEY=guest
+      - AWS_DEFAULT_REGION=us-east-1
+    entrypoint: "/bin/sh"
+    command: -c "until curl --output /dev/null --silent --head --fail http://localstack:4566; do sleep 1; done; aws --endpoint-url=http://localstack:4566 s3 mb s3://my-s3-objs --region us-east-1"
+
+networks:
+  default:
+    name: localstack_network  # Custom network name
