@@ -1,4 +1,4 @@
-# Poc.BucketS3 API - AWS S3 CRUD with .NET 8
+# Poc.BucketS3 API - AWS S3 CRUD with .NET 10
 
 [![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)]()
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)]()
@@ -7,7 +7,7 @@
 
 ## 🎯 Overview
 
-A **production-ready** RESTful API demonstrating **best practices** for AWS S3 operations using **.NET 8**, implementing **SOLID principles** and **Domain-Driven Design (DDD)** patterns.
+A **production-ready** RESTful API demonstrating **best practices** for AWS S3 operations using **.NET 10**, implementing **SOLID principles** and **Domain-Driven Design (DDD)** patterns.
 
 This project serves as a **reference implementation** for building clean, maintainable, and testable .NET Web APIs.
 
@@ -79,7 +79,7 @@ This project follows a **layered architecture** with clear separation of concern
 
 ## Prerequisites
 
-- [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - [AWS Account](https://aws.amazon.com/)
 - [AWS CLI](https://aws.amazon.com/cli/)
 - AWS credentials configured locally (usually in `~/.aws/credentials`).
