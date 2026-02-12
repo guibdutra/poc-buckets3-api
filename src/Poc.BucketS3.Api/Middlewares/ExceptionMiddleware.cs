@@ -58,8 +58,8 @@ public class ExceptionMiddleware
         // Determine the status code, message, and log level based on the exception type.
         var (statusCode, message, logLevel) = exception switch
         {
-            ArgumentNullException or OperationCanceledException => (HttpStatusCode.BadRequest, CanceledExceptionMessage,
-                LogLevel.Information),
+            ArgumentNullException => (HttpStatusCode.BadRequest, CanceledExceptionMessage, LogLevel.Information),
+            OperationCanceledException => ((HttpStatusCode)499, "Request was cancelled by client", LogLevel.Information),
             BadRequestException ex => (ex.StatusCode, ex.Message, ex.LogLevel),
             ConflictException ex => (ex.StatusCode, ex.Message, ex.LogLevel),
             NotFoundException ex => (ex.StatusCode, ex.Message, ex.LogLevel),

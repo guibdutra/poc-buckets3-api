@@ -3,7 +3,7 @@
     "Poc.BucketS3.Api": {
       "commandName": "Project",
       "dotnetRunMessages": true,
-      "launchBrowser": false,
+      "launchBrowser": true,
       "launchUrl": "swagger",
       "applicationUrl": "https://localhost:5001;http://localhost:5000",
       "environmentVariables": {
@@ -11,8 +11,8 @@
         "ENVIRONMENT": "dev",
         "LOG_LEVEL": "Debug",
         "AWS_REGION": "us-east-1",
-        "AWS_USER_KEY": "user-key",
-        "AWS_USER_SECRET": "user-secret"
+        "AWS_USER_KEY": "guest",
+        "AWS_USER_SECRET": "guest"
       }
     }
   }

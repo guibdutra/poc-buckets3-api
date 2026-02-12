@@ -4,14 +4,14 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Poc.BucketS3.Domain.Commands;
 using Poc.BucketS3.Domain.Models;
+using Poc.BucketS3.Infrastructure.Exceptions;
 
 namespace Poc.BucketS3.Api.Controllers;
 
 /// <summary>
 ///     Controller responsible for file operations in S3.
 /// </summary>
-[ApiVersion("1.0")]
-[Route("api/v{version:apiVersion}/[controller]")]
+[Route("api/v1/[controller]")]
 [ApiController]
 public class FilesController : ControllerBase
 {
@@ -51,16 +51,29 @@ public class FilesController : ControllerBase
     {
         _logger.Log(LogLevel.Information, "Upload Files endpoint was called.");
 
-        if (files.Count <= 0) throw new ArgumentNullException(nameof(files));
+        if (files.Count <= 0) throw new BadRequestException("Files list cannot be empty.");
 
-        List<FileModel> fileList =
-        [
-            .. files.Select(file =>
-                new FileModel(bucketName, file.FileName, file.FileName, file.OpenReadStream(), file.ContentType))
-        ];
+        List<FileModel> fileList = [];
+        
+        try
+        {
+            foreach (var file in files)
+            {
+                // Each stream will be disposed by the upload handler
+                fileList.Add(new FileModel(bucketName, file.FileName, file.FileName, file.OpenReadStream(), file.ContentType));
+            }
 
-        await _mediator.Send(new UploadFilesCommand(fileList), cancellationToken);
-        return NoContent();
+            await _mediator.Send(new UploadFilesCommand(fileList), cancellationToken);
+            return NoContent();
+        }
+        finally
+        {
+            // Dispose all streams
+            foreach (var fileModel in fileList)
+            {
+                fileModel.Stream?.Dispose();
+            }
+        }
     }
 
     /// <summary>
@@ -76,7 +89,7 @@ public class FilesController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public async Task<ActionResult> GetFileAsync(
-        [FromHeader] [Required] string bucketName,
+        [FromQuery] [Required] string bucketName,
         [FromQuery] [Required] string key,
         [FromHeader(Name = "X-Correlation-Id")]
         Guid? correlationId,
@@ -115,6 +128,10 @@ public class FilesController : ControllerBase
         [FromQuery] int maxKeys = 100)
     {
         _logger.Log(LogLevel.Information, "Get All File endpoint was called.");
+
+        // Validate maxKeys parameter
+        if (maxKeys < 1 || maxKeys > 1000)
+            throw new BadRequestException("maxKeys must be between 1 and 1000");
 
         var (lstFileModel, xContinuationToken) =
             await _mediator.Send(new GetAllFileCommand(bucketName, maxKeys, prefix, continuationToken),

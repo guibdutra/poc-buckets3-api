@@ -1,6 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
+using Amazon;
 using Amazon.S3;
 using Amazon.S3.Transfer;
+using Poc.BucketS3.Domain;
 using Poc.BucketS3.Domain.Interfaces;
 using Poc.BucketS3.Infrastructure.Services;
 
@@ -38,7 +40,7 @@ public static class Configurations
         services.AddScoped((Func<IServiceProvider, IAmazonS3>)(_ =>
             new AmazonS3Client(Constants.Aws.UserKey, Constants.Aws.UserSecret, new AmazonS3Config
             {
-                RegionEndpoint = RegionEndpoint.GetBySystemName(Constants.Aws.AmazonS3.Region)
+                RegionEndpoint = RegionEndpoint.GetBySystemName(Constants.Aws.BucketS3.Region)
             })));
 #endif
         services.AddScoped<ITransferUtility, TransferUtility>(delegate(IServiceProvider provider)

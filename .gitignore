@@ -455,3 +455,4 @@ $RECYCLE.BIN/
 
 # Secures Developement Config
 appsettings.Development.json
+**/Properties/launchSettings.json

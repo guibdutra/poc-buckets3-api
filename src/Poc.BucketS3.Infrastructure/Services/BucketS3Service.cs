@@ -90,8 +90,14 @@ public class BucketS3Service : IStorage
     {
         try
         {
-            var s3Object = await _amazonS3.GetObjectAsync(file.BucketName, file.Key, cancellationToken);
-            file.SetStream(s3Object.ResponseStream);
+            using var s3Object = await _amazonS3.GetObjectAsync(file.BucketName, file.Key, cancellationToken);
+            
+            // Copy stream to MemoryStream so we can dispose the response
+            var memoryStream = new MemoryStream();
+            await s3Object.ResponseStream.CopyToAsync(memoryStream, cancellationToken);
+            memoryStream.Position = 0;
+            
+            file.SetStream(memoryStream);
             file.SetContentType(s3Object.Headers.ContentType);
             return file;
         }
@@ -114,10 +120,10 @@ public class BucketS3Service : IStorage
             Key = fileModel.Key
         };
 
-        var response = await _amazonS3.DeleteObjectAsync(request, cancellationToken);
-
-        if (response.HttpStatusCode == HttpStatusCode.NotFound)
-            throw new NotFoundException("The file was not found or an error occurred.");
+        await _amazonS3.DeleteObjectAsync(request, cancellationToken);
+        
+        // S3 DeleteObject is idempotent - it returns success even if object doesn't exist
+        // No need to check response status
     }
 
     /// <inheritdoc />
@@ -150,23 +156,16 @@ public class BucketS3Service : IStorage
     /// <inheritdoc />
     public Task<FileModel> GetUrlFileAsync(FileModel fileModel, CancellationToken cancellationToken)
     {
-        try
+        const int preSignedUrlExpires = 1;
+        var request = new GetPreSignedUrlRequest
         {
-            const int preSignedUrlExpires = 1;
-            var request = new GetPreSignedUrlRequest
-            {
-                BucketName = fileModel.BucketName,
-                Key = fileModel.Key,
-                Expires = DateTime.Now.AddHours(preSignedUrlExpires)
-            };
+            BucketName = fileModel.BucketName,
+            Key = fileModel.Key,
+            Expires = DateTime.UtcNow.AddHours(preSignedUrlExpires)
+        };
 
-            var preSignedUrl = _amazonS3.GetPreSignedURL(request);
-            return Task.FromResult(new FileModel(fileModel.BucketName, fileModel.Key!, preSignedUrl, request.Expires));
-        }
-        catch (AmazonS3Exception ex) when (ex.StatusCode == HttpStatusCode.NotFound)
-        {
-            throw new NotFoundException(ex.Message);
-        }
+        var preSignedUrl = _amazonS3.GetPreSignedURL(request);
+        return Task.FromResult(new FileModel(fileModel.BucketName, fileModel.Key!, preSignedUrl, request.Expires));
     }
 
     #region Private Methods

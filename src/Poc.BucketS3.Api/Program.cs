@@ -1,7 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Versioning;
 using Poc.BucketS3.Api;
 using Poc.BucketS3.Api.Middlewares;
 using Poc.BucketS3.Domain.Commands;
@@ -51,17 +49,6 @@ public class Program
             builder.Services.AddDependencyInjection();
 
             builder.Services.AddAwsBucketS3();
-
-            builder.Services.AddApiVersioning(options =>
-            {
-                options.ReportApiVersions = true;
-
-                options.DefaultApiVersion = new ApiVersion(1, 0);
-
-                options.AssumeDefaultVersionWhenUnspecified = true;
-
-                options.ApiVersionReader = new UrlSegmentApiVersionReader();
-            });
 
             var app = builder.Build();
 

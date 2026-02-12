@@ -11,8 +11,7 @@ namespace Poc.BucketS3.Api.Controllers;
 /// <summary>
 ///     Controller responsible for bucket operations in S3.
 /// </summary>
-[ApiVersion("1.0")]
-[Route("api/v{version:apiVersion}/[controller]")]
+[Route("api/v1/[controller]")]
 [ApiController]
 public class BucketsController : ControllerBase
 {
